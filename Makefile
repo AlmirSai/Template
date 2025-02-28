@@ -1,28 +1,45 @@
+# Local binary directory for storing go binaries (e.g., golangci-lint, server binary)
 LOCAL_BIN:=$(CURDIR)/bin
 
-install-golangci-lint:
-    GOBIN=$(LOCAL_BIN) go install github.com/golangci/golangci-lint/cmd/golangci-lint@v1.61.0
-
-lint:
-    $(LOCAL_BIN)/golangci-lint run ./... --config .golangci.pipeline.yaml
-
-# Install dependencies
+# Install Go module dependencies and tidy up the go.mod file
 deps:
-    go mod tidy
-    go mod vendor
+	@echo "Tidying up Go modules..."
+	@go mod tidy
+	@go mod vendor
+	@echo "Go modules installed and tidied."
 
-# Build the project
+# Build the Go project, creating the server binary
 build:
-    go build -o $(LOCAL_BIN)/server ./cmd/server/main.go
+	@echo "Building the server binary..."
+	@go build -o $(LOCAL_BIN)/server ./cmd/server/main.go
+	@echo "Build complete."
 
-# Run tests
+# Run all tests in the project (verbose output)
 test:
-    go test ./... -v
+	@echo "Running tests..."
+	@go test ./... -v
+	@echo "Test execution complete."
 
-# Generate gRPC code
+# Generate Go code from Proto files
 generate:
-    protoc --go_out=. --go-grpc_out=. --grpc-gateway_out=. --openapiv2_out=. api/*.proto
+	@echo "Generating gRPC code from Proto files..."
+	@protoc --go_out=. --go-grpc_out=. --grpc-gateway_out=. --openapiv2_out=. api/*.proto
+	@echo "gRPC code generation complete."
 
-# Clean up binaries
+# Clean up generated binaries in the local bin directory
 clean:
-    rm -rf $(LOCAL_BIN)/*
+	@echo "Cleaning up generated binaries..."
+	@rm -rf $(LOCAL_BIN)/*
+	@echo "Cleanup complete."
+
+# Quick summary of all available targets
+help:
+	@echo "Available make targets:"
+	@echo "  deps                    Install Go dependencies and tidy the go.mod file."
+	@echo "  build                   Build the Go project and create the server binary."
+	@echo "  test                    Run tests in the project."
+	@echo "  generate                Generate gRPC code from Proto files."
+	@echo "  clean                   Remove generated binaries from the local bin directory."
+	@echo "  install                 Run 'install-golangci-lint' and 'deps' in one go."
+
+# Run the linter using Docker for consistent environment
